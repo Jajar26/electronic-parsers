@@ -41,8 +41,6 @@ from runschema.calculation import (
     SpinSpinCoupling,
 )
 from .metainfo.magres import m_package
-
-from nomad.app.v1.models import MetadataRequired
 from ..utils import BeyondDFTWorkflowsParser
 
 
@@ -441,7 +439,7 @@ class MagresParser(BeyondDFTWorkflowsParser):
 
         # Create Run with Program information
         sec_run = Run()
-        calculation_params = self.magres_file_parser.get('calculation')
+        calculation_params = self.magres_file_parser.get('calculation', {})
         program_name = calculation_params.get('code', '')
         if program_name != 'CASTEP':
             self.logger.error(
