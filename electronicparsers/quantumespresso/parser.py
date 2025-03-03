@@ -49,6 +49,7 @@ from runschema.calculation import (
     StressEntry,
     Thermodynamics,
     BandEnergies,
+    BandStructure,
     ScfIteration,
     Dos,
     DosValues,
