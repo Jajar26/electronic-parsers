@@ -71,7 +71,7 @@ class MainfileParser(TextParser):
             ),
         ]
 
-        Quantity(
+            Quantity(
                 'rescaled_simulation_cell',
                 for i in range(0,2):
                     simulation_cell[i][:]*alat factors[i]
