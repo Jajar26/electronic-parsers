@@ -61,7 +61,7 @@ class MainfileParser(TextParser):
                 unit='bohr',
                 dtype=float,
             ),
-        ]
+        
 
             Quantity(
                 'simulation_cell',
@@ -69,7 +69,7 @@ class MainfileParser(TextParser):
                 dtype=float,
                 shape=(3, 3),
             ),
-        ]
+        
 
             Quantity(
                 'rescaled_simulation_cell',
