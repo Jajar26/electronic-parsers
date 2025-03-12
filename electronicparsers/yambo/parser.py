@@ -63,7 +63,7 @@ class MainfileParser(TextParser):
             ),
         ]
 
-             Quantity(
+            Quantity(
                 'simulation_cell',
                 r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
                 dtype=float,
