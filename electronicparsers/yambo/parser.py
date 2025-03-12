@@ -58,7 +58,7 @@ class MainfileParser(TextParser):
             unit='alat',
             dtype=float,
         ),
-    
+   
         Quantity(
             'simulation_cell',
             r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
@@ -68,7 +68,7 @@ class MainfileParser(TextParser):
     ]
 
     rescaled_simulation_cell = [
-        for i in range(0, 3): 
+        for i in range(0, 3):
             for j in range(3):  # Pour chaque élément de cette ligne
                 simulation_cell[i][j] *= alat_factors[i]
     ]
