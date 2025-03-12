@@ -51,6 +51,36 @@ class MainfileParser(TextParser):
     def init_quantities(self):
         re_f = r'[-+]*\d*\.\d+[Ee]*[-+]*\d*'
 
+       header_quantities = [
+            
+
+
+            Quantity(
+                'alat factors',
+                rf'(Alat factors \: \s*({re_float})\s*({re_float})\s*({re_float})',
+                unit='bohr',
+                dtype=float,
+            ),
+        
+
+            Quantity(
+                'simulation_cell',
+                r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
+                dtype=float,
+                shape=(3, 3),
+            ),
+        
+
+            Quantity(
+                'rescaled_simulation_cell',
+                for i in range(0,2):
+                    simulation_cell[i][:]*alat factors[i]
+                dtype=float,
+                shape=(3, 3),
+            ),
+        
+
+        
         io_quantities = [
             Quantity(
                 'key_value',
