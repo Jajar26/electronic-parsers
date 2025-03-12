@@ -51,34 +51,38 @@ class MainfileParser(TextParser):
     def init_quantities(self):
         re_f = r'[-+]*\d*\.\d+[Ee]*[-+]*\d*'
 
-       header_quantities = [
-            
 
+## EM, Hajar B: added this part for parsing cell parameters from Yambo outputs:
+header_quantities = [
+        Quantity(
+            'alat_factors',
+            rf'(Alat factors \: \s*({re_float})\s*({re_float})\s*({re_float}))',
+            unit='alat',
+            dtype=float,
+        ),
+   
+        Quantity(
+            'simulation_cell',
+            r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
+            dtype=float,
+            shape=(3, 3),
+        ),
+    ]
 
+    rescaled_simulation_cell = [
+        for i in range(0, 3):
+            for j in range(3):  # For each element in this row
+                simulation_cell[i][j] *= alat_factors[i]
+    ]
+
+    header_quantities.append(
             Quantity(
-                'alat factors',
-                rf'(Alat factors \: \s*({re_float})\s*({re_float})\s*({re_float})',
-                unit='bohr',
-                dtype=float,
-            ),
-        
-
-            Quantity(
-                'simulation_cell',
-                r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
-                dtype=float,
-                shape=(3, 3),
-            ),
-        
-
-            Quantity(
-                'rescaled_simulation_cell',
-                for i in range(0,2):
-                    simulation_cell[i][:]*alat factors[i]
-                dtype=float,
-                shape=(3, 3),
-            ),
-        
+            'rescaled_simulation_cell',
+            dtype=float,
+            shape=(3, 3),
+        )
+    )    
+#########        
 
         
         io_quantities = [
