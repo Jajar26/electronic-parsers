@@ -60,23 +60,20 @@ class MainfileParser(TextParser):
                 unit='alat',
                 dtype=float,
             ),
-
             Quantity(
                 'simulation_cell',
                 r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
                 dtype=float,
                 shape=(3, 3),
             ),
-
             Quantity(
                 'rescaled_simulation_cell',
                 for i in range(0, 3):
                     for j in range(0, 3):
-                        rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
+                        rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i],
                 dtype=float,
                 shape=(3, 3),
             ),
-
         ]
 #########        
 
