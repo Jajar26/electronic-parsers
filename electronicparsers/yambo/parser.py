@@ -70,7 +70,7 @@ header_quantities = [
     ]
 
     rescaled_simulation_cell = [
-        for i in range(0, 2):
+        for i in range(0, 3):
             for j in range(3):  # For each element in this row
                 simulation_cell[i][j] *= alat_factors[i]
     ]
