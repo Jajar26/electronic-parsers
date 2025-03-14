@@ -63,7 +63,7 @@ header_quantities = [
    
         Quantity(
             'simulation_cell',
-            r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
+            rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
             dtype=float,
             shape=(3, 3),
         ),
