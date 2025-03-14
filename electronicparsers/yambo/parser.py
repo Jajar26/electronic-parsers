@@ -57,13 +57,13 @@ class MainfileParser(TextParser):
             Quantity(
                 'alat_factors',
                 rf'(Alat factors \: \s*({re_float})\s*({re_float})\s*({re_float}))',
-                unit='atomic_unit_of_length',
-                dtype=np.float,
+                unit=ureg.atomic_unit_of_length,
+                dtype=np.float64,
             ),
             Quantity(
                 'simulation_cell',
                 r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
-                dtype=np.float,
+                dtype=np.float64,
                 shape=(3, 3),
             ),
         ]
