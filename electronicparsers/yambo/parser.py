@@ -53,37 +53,29 @@ class MainfileParser(TextParser):
 
 
 ## EM, Hajar B: added this part for parsing cell parameters from Yambo outputs:
-header_quantities = [
-        Quantity(
-            'alat_factors',
-            rf'(Alat factors \: \s*({re_float})\s*({re_float})\s*({re_float}))',
-            unit='alat',
-            dtype=float,
-        ),
-   
-        Quantity(
-            'simulation_cell',
-            rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
-            dtype=float,
-            shape=(3, 3),
-        ),
-    ]
-
-    rescaled_simulation_cell = [
-        for i in range(0,3):
-            for j in range(3): 
-                simulation_cell[i][j] *= alat_factors[i]
-    ]
-
-    header_quantities.append(
+        header_quantities = [
+       
             Quantity(
-            'rescaled_simulation_cell',
-            dtype=float,
-            shape=(3, 3),
-        )
-    )    
-#########        
+                'alat_factors',
+                rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
+                unit=ureg.atomic_unit_of_length,
+                dtype=np.float64,
+            ),
+            Quantity(
+                'simulation_cell',
+                rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
+                rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
+                rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
+                dtype=np.float64,
+            ),
+        ]
 
+        def rescale_simulation_cell(self, simulation_cell, alat_factors):
+            rescaled_simulation_cell = np.zeros((3, 3))
+            for i in range(3):
+                for j in range(3):
+                    rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
+            return rescaled_simulation_cell
         
         io_quantities = [
             Quantity(
