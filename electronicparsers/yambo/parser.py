@@ -68,7 +68,7 @@ class MainfileParser(TextParser):
             ),
         ]
 
-        rescaled_simulation_cell = [[[],[],[]],[[],[],[]],[[],[],[]]]
+        rescaled_simulation_cell = [[,,],[,,],[,,]]
         for i in range(0, 3):
                 for j in range(0, 3):
                     rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
