@@ -54,6 +54,7 @@ class MainfileParser(TextParser):
 
 ## EM, Hajar B: added this part for parsing cell parameters from Yambo outputs:
         header_quantities = [
+
             Quantity(
                 'alat_factors',
                 rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
@@ -68,10 +69,12 @@ class MainfileParser(TextParser):
             ),
         ]
 
-#        rescaled_simulation_cell = [[,,],[,,],[,,]]
-        for i in range(0, 3):
-                for j in range(0, 3):
+        def rescale_simulation_cell(self, simulation_cell, alat_factors):
+            rescaled_simulation_cell = np.zeros((3, 3))
+            for i in range(3):
+                for j in range(3):
                     rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
+            return rescaled_simulation_cell
                
         
         io_quantities = [
