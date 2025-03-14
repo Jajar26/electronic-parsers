@@ -56,7 +56,7 @@ class MainfileParser(TextParser):
         header_quantities = [
             Quantity(
                 'alat_factors',
-                rf'(Alat factors \: \s*({re_float})\s*({re_float})\s*({re_float}))',
+                rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
                 unit=ureg.atomic_unit_of_length,
                 dtype=np.float64,
             ),
