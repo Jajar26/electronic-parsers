@@ -70,6 +70,13 @@ class MainfileParser(TextParser):
             ),
         ]
 
+            Quantity(
+                'header',
+                r'([Pp]rogram [A-Z]+[\s\S]+?)(?:Self\-|Band)',
+                repeats=False,
+                sub_parser=TextParser(quantities=header_quantities),
+            ),
+
         def rescale_simulation_cell(self, simulation_cell, alat_factors):
             rescaled_simulation_cell = np.zeros((3, 3))
             for i in range(3):
