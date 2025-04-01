@@ -53,8 +53,32 @@ class MainfileParser(TextParser):
 
 
 ## EM, Hajar B: added this part for parsing cell parameters from Yambo outputs:
-        header_quantities = [
-       
+#        header_quantities = [
+#            Quantity(
+#                'alat_factors',
+#                rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
+#                unit=ureg.atomic_unit_of_length,
+#                dtype=np.float64,
+#            ),
+#            Quantity(
+#                'simulation_cell',
+#                r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
+#                dtype=np.float64,
+#                shape=(3, 3),
+#            ),
+#        ]
+#
+#
+#        def rescaled_simulation_cell(self, simulation_cell, alat_factors):
+#            rescaled_simulation_cell = np.zeros((3,3))
+#            for i in range(0, 3):
+#                for j in range(0, 3):
+#                    rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
+#            return rescaled_simulation_cell
+
+        
+        io_quantities = [
+###
             Quantity(
                 'alat_factors',
                 rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
@@ -63,28 +87,11 @@ class MainfileParser(TextParser):
             ),
             Quantity(
                 'simulation_cell',
-                rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
-                rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
-                rf'(A\[1\] \: \s*({re_float})\s*A\[2\] \:\s*({re_float})\s*A\[3\] \: \s*({re_float})\s*)',
+                r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
                 dtype=np.float64,
+                shape=(3, 3),
             ),
-        ]
-
-            Quantity(
-                'header',
-                r'([Pp]rogram [A-Z]+[\s\S]+?)(?:Self\-|Band)',
-                repeats=False,
-                sub_parser=TextParser(quantities=header_quantities),
-            ),
-
-        def rescale_simulation_cell(self, simulation_cell, alat_factors):
-            rescaled_simulation_cell = np.zeros((3, 3))
-            for i in range(3):
-                for j in range(3):
-                    rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
-            return rescaled_simulation_cell
-        
-        io_quantities = [
+###
             Quantity(
                 'key_value',
                 r'([A-Z\d].+?)(?:\(.+\)|\[.+\]| |)(:.+?)(?:\[|\n)',
@@ -192,6 +199,16 @@ class MainfileParser(TextParser):
             ),
         ]
 
+        
+###
+        def rescaled_simulation_cell(self, simulation_cell, alat_factors):
+            rescaled_simulation_cell = np.zeros((3,3))
+            for i in range(0, 3):
+                for j in range(0, 3):
+                    rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
+            return rescaled_simulation_cell
+###
+        
         qp_properties_quantity = Quantity(
             'qp_properties',
             r'QP properties and I/O([\s\S]+? S/N \d+.+)',
@@ -515,7 +532,14 @@ class MainfileParser(TextParser):
                 repeats=True,
                 sub_parser=TextParser(quantities=module_quantities),
             ),
+            Quantity(
+                'io',
+                r'(Version [\s\S]+?)(Unit cells [\s\S]+?)',
+                repeats=False,
+                sub_parser=TextParser(quantities=io_quantities),
+            ),
         ]
+
 
 
 class NetCDFParser(FileParser):
@@ -636,6 +660,9 @@ class YamboParser:
             'valence_conduction',
             [source.get('valence', 0.0), source.get('conduction', 0.0)],
         )
+      
+           
+        
         calc.energy = Energy(
             fermi=source.get('fermi', 0.0),
             highest_occupied=valence_conduction[0],
@@ -750,6 +777,8 @@ class YamboParser:
             system = System()
             run.system.append(system)
             positions = self.netcdf_parser.get('ATOM_POS', [])
+#            n_atoms = self.netcdf_parser.get('N_ATOMS',[])
+            max_n_atoms = self.netcdf_parser.get('MAX_ATOMS')
             n_atoms = self.netcdf_parser.N_ATOMS
             atom_numbers = np.hstack(
                 [
@@ -757,16 +786,51 @@ class YamboParser:
                     for n in range(len(n_atoms))
                 ]
             )
+
+#     we define the process_and_select function within the parse_input function
+        def process_and_select(positions, max_n_atoms, n_atoms): 
+
+            positions = np.array(positions)
+            blocks = []
+            selected = []
+
+            if len(positions.shape) == 1:
+                positions = positions.reshape(-1, 3)
+    
+            n_points = positions.shape[0] 
+            n_blocks = n_points // max_n_atoms
+
+            for i in range(n_blocks):
+                start_idx = i * max_n_atoms
+                end_idx = (i + 1) * max_n_atoms
+                block = positions[start_idx:end_idx]
+                blocks.append(block)
+    
+    
+            for i, block in enumerate(blocks):
+                n_to_select = n_atoms[i]
+                selected_from_block = block[:n_to_select]
+                selected.append(selected_from_block)
+    
+            positions=np.vstack(selected)
+            
+            return positions
+
+            positions = process_and_select(positions, max_n_atoms, n_atoms)
+            
+        
             system.atoms = Atoms(
-                positions=np.reshape(positions, (np.size(positions) // 3, 3))
-                * ureg.bohr,
+                positions = positions * ureg.bohr,
                 labels=[chemical_symbols[int(n)] for n in atom_numbers],
             )
+##########################            
+
             if self.netcdf_parser.LATTICE_VECTORS is not None:
                 system.atoms.lattice_vectors = (
                     self.netcdf_parser.LATTICE_VECTORS * ureg.bohr
                 )
 
+        
         # reference calculation
         energies_occupations = self.mainfile_parser.get('core_variables_setup', {}).get(
             'energies_occupations'
@@ -918,7 +982,7 @@ class YamboParser:
                 key = key.strip().replace('/', '').replace(' ', '_').lower()
                 val = val == 'yes' if val in ['yes', 'no'] else val
                 setattr(run, 'x_yambo_%s' % key, val)
-
+        
         def parse_module(module):
             self.parse_dipoles(module)
             self.parse_dynamic_dielectric_matrix(module)
