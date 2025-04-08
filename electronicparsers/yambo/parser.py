@@ -41,6 +41,7 @@ from .metainfo.yambo import (
     x_yambo_bare_xc_bandenergies,
     x_yambo_module,
     x_yambo_transferred_momenta,
+    x_yambo_spectra,   # to be defined in the yambo metainfo
 )
 
 
@@ -51,47 +52,9 @@ class MainfileParser(TextParser):
     def init_quantities(self):
         re_f = r'[-+]*\d*\.\d+[Ee]*[-+]*\d*'
 
-
-## EM, Hajar B: added this part for parsing cell parameters from Yambo outputs:
-#        header_quantities = [
-#            Quantity(
-#                'alat_factors',
-#                rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
-#                unit=ureg.atomic_unit_of_length,
-#                dtype=np.float64,
-#            ),
-#            Quantity(
-#                'simulation_cell',
-#                r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
-#                dtype=np.float64,
-#                shape=(3, 3),
-#            ),
-#        ]
-#
-#
-#        def rescaled_simulation_cell(self, simulation_cell, alat_factors):
-#            rescaled_simulation_cell = np.zeros((3,3))
-#            for i in range(0, 3):
-#                for j in range(0, 3):
-#                    rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
-#            return rescaled_simulation_cell
-
         
         io_quantities = [
-###
-            Quantity(
-                'alat_factors',
-                rf'(Alat factors \: \s*({re_f})\s*({re_f})\s*({re_f}))',
-                unit=ureg.atomic_unit_of_length,
-                dtype=np.float64,
-            ),
-            Quantity(
-                'simulation_cell',
-                r'A\[1\] \: \(([\-\d\. ]+)\)\s*A\[2\] \: \(([\-\d\. ]+)\)\s*A\[3\] \: \(([\-\d\. ]+)\)\s*',
-                dtype=np.float64,
-                shape=(3, 3),
-            ),
-###
+
             Quantity(
                 'key_value',
                 r'([A-Z\d].+?)(?:\(.+\)|\[.+\]| |)(:.+?)(?:\[|\n)',
@@ -200,14 +163,6 @@ class MainfileParser(TextParser):
         ]
 
         
-###
-        def rescaled_simulation_cell(self, simulation_cell, alat_factors):
-            rescaled_simulation_cell = np.zeros((3,3))
-            for i in range(0, 3):
-                for j in range(0, 3):
-                    rescaled_simulation_cell[i][j] = simulation_cell[i][j] * alat_factors[i]
-            return rescaled_simulation_cell
-###
         
         qp_properties_quantity = Quantity(
             'qp_properties',
@@ -571,6 +526,35 @@ class NetCDFParser(FileParser):
             ][:].data
 
 
+##
+class OutputParser(TextParser):
+    def __init__(self):
+        super().__init__()
+
+    self._quantities = [
+        Quantity(  
+            'spectra',
+            r'Polarizability|Absorption',
+            
+            sub_parser=TextParser(
+                quantities=[Quantity(
+                                    'energies',
+                                    rf'E/ev[1] *({re_f})',
+                                    dtype=np.dtype(np.float64),
+                            ),
+                            Quantity(
+                                    'intensities',
+                                    rf'[\S\s*] Im[4] *({re_f})',
+                                    dtype=np.dtype(np.float64),
+                            ),
+                            
+                ]
+        )
+    ]
+
+##
+
+
 class InputParser(TextParser):
     def __init__(self):
         super().__init__()
@@ -599,6 +583,7 @@ class YamboParser:
         self.mainfile_parser = MainfileParser()
         self.input_parser = InputParser()
         self.netcdf_parser = NetCDFParser()
+        self.output_parser = OutputParser()
         self.metainfo_map = {
             'cpu': 'cores',
             'threads': 'threads_per_core',
@@ -777,8 +762,7 @@ class YamboParser:
             system = System()
             run.system.append(system)
             positions = self.netcdf_parser.get('ATOM_POS', [])
-#            n_atoms = self.netcdf_parser.get('N_ATOMS',[])
-            max_n_atoms = self.netcdf_parser.get('MAX_ATOMS')
+            max_n_atoms = self.netcdf_parser.get('MAX_ATOMS', 0)
             n_atoms = self.netcdf_parser.N_ATOMS
             atom_numbers = np.hstack(
                 [
@@ -787,38 +771,37 @@ class YamboParser:
                 ]
             )
 
-#     we define the process_and_select function within the parse_input function
-        def process_and_select(positions, max_n_atoms, n_atoms): 
 
-            positions = np.array(positions)
-            blocks = []
-            selected = []
+            def process_and_select(positions, max_n_atoms, n_atoms): 
+"""we define the process_and_select function within the parse_input function"""
+                try:
+                    positions = np.array(positions)
+                    blocks = []
+                    selected = []
+                    positions = positions.reshape(-1, 3)
+    
+                    n_points = positions.shape[0] 
+                    n_blocks = int( int(n_points) // int(max_n_atoms) )
 
-            if len(positions.shape) == 1:
-                positions = positions.reshape(-1, 3)
+                    for i in range(n_blocks):
+                        start_idx = int(i) * int(max_n_atoms)
+                        end_idx = (int(i) + 1) * int(max_n_atoms)
+                        block = positions[start_idx:end_idx]
+                        blocks.append(block)
+                    for i, block in enumerate(blocks):
+                        n_to_select = int(n_atoms[int(i)])
+                        selected_from_block = block[:n_to_select]
+                        for point in selected_from_block:
+                            selected.append(point)
     
-            n_points = positions.shape[0] 
-            n_blocks = n_points // max_n_atoms
-
-            for i in range(n_blocks):
-                start_idx = i * max_n_atoms
-                end_idx = (i + 1) * max_n_atoms
-                block = positions[start_idx:end_idx]
-                blocks.append(block)
-    
-    
-            for i, block in enumerate(blocks):
-                n_to_select = n_atoms[i]
-                selected_from_block = block[:n_to_select]
-                selected.append(selected_from_block)
-    
-            positions=np.vstack(selected)
-            
-            return positions
+                    positions=np.array(selected)
+                    return positions        
+                    
+                except Exception as e:
+                    raise e
 
             positions = process_and_select(positions, max_n_atoms, n_atoms)
             
-        
             system.atoms = Atoms(
                 positions = positions * ureg.bohr,
                 labels=[chemical_symbols[int(n)] for n in atom_numbers],
@@ -954,6 +937,13 @@ class YamboParser:
                 )
                 self.netcdf_parser.parse()
                 self.parse_calculation(source.qp_properties)
+
+    def parse_spectrum(self, filepath, archive, logger):
+        source = module.spectra
+        if source is None:
+            return
+        self._module = x_yambo_spectra  # to be defined in the yambo metainfo
+    
 
     def parse(self, filepath, archive, logger):
         self.filepath = os.path.abspath(filepath)
