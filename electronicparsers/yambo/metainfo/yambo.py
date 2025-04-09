@@ -63,6 +63,8 @@ class x_yambo_io(MSection):
     )
 
 
+
+
 class x_yambo_parameters(MSection):
     m_def = Section(validate=False)
 
@@ -166,6 +168,16 @@ class x_yambo_parameters(MSection):
     )
 
     x_yambo_magnetic_symmetries = Quantity(
+        type=str,
+        shape=[],
+        description="""
+        """,
+    )
+
+class Properties(result.properties):
+    m_def = Section(validate=False, extends_base_section=True)
+    
+     x_yambo_spectra = Quantity(
         type=str,
         shape=[],
         description="""
