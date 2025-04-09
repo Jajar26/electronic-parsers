@@ -43,6 +43,7 @@ from .metainfo.yambo import (
     x_yambo_transferred_momenta,
     x_yambo_spectra,   # to be defined in the yambo metainfo
 )
+from nomad.normalizing.results import Spectra, ResultsNormalizer 
 
 
 class MainfileParser(TextParser):
@@ -526,10 +527,11 @@ class NetCDFParser(FileParser):
             ][:].data
 
 
-##
+###
 class OutputParser(TextParser):
     def __init__(self):
         super().__init__()
+
 
     self._quantities = [
         Quantity(  
@@ -546,7 +548,7 @@ class OutputParser(TextParser):
                                     quantities=[
                                         Quantity('output_spectra_values',
                                                  rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
-                                                repeats=True,
+                                                shape=(, 3),
                                                 dtype=np.dtype(np.float64),
                                     
                                     ),
@@ -560,7 +562,7 @@ class OutputParser(TextParser):
   
             
 
-##
+###
 
 
 class InputParser(TextParser):
@@ -878,7 +880,6 @@ class YamboParser:
         self._module = x_yambo_local_xc_nonlocal_fock
         self.parse_method(source)
         calc = self.parse_calculation(source.hf_occupations)
-
         if source.corrections is not None:
             if calc is None:
                 calc = Calculation()
@@ -946,11 +947,40 @@ class YamboParser:
                 self.netcdf_parser.parse()
                 self.parse_calculation(source.qp_properties)
 
-    def parse_spectrum(self, filepath, archive, logger):
+    ###
+    def resolve_spectra_yambo(self, path: list[str], energies, intensities) :
+        
+        spectra = traverse_reversed(self.entry_archive, path)
+        if not spectra:
+            return None
+        spectra_root: list[Spectra] = []
+        for spectrum in spectra:
+            n_energies = spectrum.n_energies
+            if n_energies and n_energies > 0:
+                spectra_results = Spectra(
+                    type=spectrum.type, label='computation', n_energies=n_energies
+                )
+                provenance = spectra_results.m_create(SpectraProvenance)
+                provenance.electronic_structure = spectrum.provenance
+                if valid_array(energies) and valid_array(intensities):
+                    spectra_results.energies = energies
+                    spectra_results.intensities = intensities
+                    if spectrum.intensities_units:
+                        spectra_results.intensities_units = spectrum.intensities_units
+                    spectra_root.insert(0, spectra_results)
+        return spectra_root
+
+    def parse_spectrum(self):
         source = module.spectra
         if source is None:
             return
         self._module = x_yambo_spectra  # to be defined in the yambo metainfo
+        path: list[str] = ['results', 'properties', 'spectroscopic']
+        energies = output_spectra_values[0]
+        intensities = output_spectra_values[1]
+        spectra = resolve_spectra_yambo(self, path: list[str], energies, intensities)
+
+    ###
     
 
     def parse(self, filepath, archive, logger):
