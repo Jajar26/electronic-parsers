@@ -970,7 +970,10 @@ class YamboParser:
         if source is None:
             return
         self._module = x_yambo_spectra  
-
+        path = ['results', 'properties', 'spectroscopic']
+        energies = output_spectra_values[:, 0]
+        intensities = output_spectra_values[:, 1]
+        spectra = self.resolve_spectra_yambo(path, energies, intensities) 
     ###
     
 
