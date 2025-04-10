@@ -531,35 +531,31 @@ class NetCDFParser(FileParser):
 class OutputParser(TextParser):
     def __init__(self):
         super().__init__()
-
-
-    self._quantities = [
-        Quantity(  
-            'spectra',
-            r'Polarizability|Absorption',
-            
-            sub_parser=TextParser(
-                quantities=[Quantity('output_spectra',
-                                    rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
-                                    repeats=False,
-                                     
-                             ),
-                             sub_parser=TextParser(
-                                    quantities=[
-                                        Quantity('output_spectra_values',
-                                                 rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
-                                                shape=(, 3),
-                                                dtype=np.dtype(np.float64),
-                                    
+        self._quantities = [
+            Quantity(  
+                'spectra',
+                r'Polarizability|Absorption',
+                sub_parser=TextParser(
+                    quantities=[
+                        Quantity(
+                            'output_spectra',
+                            rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
+                            repeats=False,
+                            sub_parser=TextParser(
+                                quantities=[
+                                    Quantity(
+                                        'output_spectra_values',
+                                        rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
+                                        shape=(None, 3),  # Correction ici: None au lieu de vide
+                                        dtype=np.dtype(np.float64),
                                     ),
                                 ]
-                             ), 
-                        ]
-                    ),
+                            ), 
+                        )
+                    ],
                 ),
-            ]
-
-  
+            )
+        ]
             
 
 ###
@@ -948,12 +944,11 @@ class YamboParser:
                 self.parse_calculation(source.qp_properties)
 
     ###
-    def resolve_spectra_yambo(self, path: list[str], energies, intensities) :
-        
+    def resolve_spectra_yambo(self, path, energies, intensities): 
         spectra = traverse_reversed(self.entry_archive, path)
         if not spectra:
             return None
-        spectra_root: list[Spectra] = []
+        spectra_root = []
         for spectrum in spectra:
             n_energies = spectrum.n_energies
             if n_energies and n_energies > 0:
@@ -969,16 +964,12 @@ class YamboParser:
                         spectra_results.intensities_units = spectrum.intensities_units
                     spectra_root.insert(0, spectra_results)
         return spectra_root
-
+    
     def parse_spectrum(self):
-        source = module.spectra
+        source = module.spectra  
         if source is None:
             return
-        self._module = x_yambo_spectra  # to be defined in the yambo metainfo
-        path: list[str] = ['results', 'properties', 'spectroscopic']
-        energies = output_spectra_values[0]
-        intensities = output_spectra_values[1]
-        spectra = resolve_spectra_yambo(self, path: list[str], energies, intensities)
+        self._module = x_yambo_spectra  
 
     ###
     
