@@ -174,7 +174,7 @@ class x_yambo_parameters(MSection):
         """,
     )
 
-class Properties(result.properties):
+class Properties(results.properties):
     m_def = Section(validate=False, extends_base_section=True)
     
      x_yambo_spectra = Quantity(
