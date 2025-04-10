@@ -41,7 +41,7 @@ from .metainfo.yambo import (
     x_yambo_bare_xc_bandenergies,
     x_yambo_module,
     x_yambo_transferred_momenta,
-    x_yambo_spectra,   # to be defined in the yambo metainfo
+    x_yambo_spectroscopic,   # to be defined in the yambo metainfo
 )
 from nomad.normalizing.results import Spectra, ResultsNormalizer 
 
