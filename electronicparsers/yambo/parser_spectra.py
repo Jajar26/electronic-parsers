@@ -24,12 +24,12 @@ from datetime import datetime
 from netCDF4 import Dataset  # pylint: disable=no-name-in-module
 from ase.data import chemical_symbols
 
-from nomad.parsing.file_parser import TextParser, Quantity, FileParser
+from nomad.parsing.file_parser import TextParser, Quantity, FileParser, DataTextParser #add DataTextParser
 from nomad.units import ureg
 from runschema.run import Run, Program, TimeRun
 from runschema.system import System, Atoms
 from runschema.method import Method
-from runschema.calculation import Calculation, Energy, EnergyEntry, BandEnergies
+from runschema.calculation import Calculation, Energy, EnergyEntry, BandEnergies, Spectra #add Spectra
 from .metainfo.yambo import (
     x_yambo_dipoles,
     x_yambo_dynamic_dielectric_matrix_fragment,
@@ -44,7 +44,6 @@ from .metainfo.yambo import (
     x_yambo_transferred_momenta,
     x_yambo_spectroscopic,   # to be defined in the yambo metainfo
 )
-from nomad.normalizing.results import Spectra, ResultsNormalizer 
 
 
 class MainfileParser(TextParser):
@@ -528,40 +527,6 @@ class NetCDFParser(FileParser):
             ][:].data
 
 
-###
-class OutputParser(TextParser):
-    def __init__(self):
-        super().__init__()
-        self._quantities = [
-            Quantity(  
-                'spectra',
-                r'Polarizability|Absorption',
-                sub_parser=TextParser(
-                    quantities=[
-                        Quantity(
-                            'output_spectra',
-                            rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
-                            repeats=False,
-                            sub_parser=TextParser(
-                                quantities=[
-                                    Quantity(
-                                        'output_spectra_values',
-                                        rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
-                                        shape=(None, 3),  # Correction ici: None au lieu de vide
-                                        dtype=np.dtype(np.float64),
-                                    ),
-                                ]
-                            ), 
-                        )
-                    ],
-                ),
-            )
-        ]
-            
-
-###
-
-
 class InputParser(TextParser):
     def __init__(self):
         super().__init__()
@@ -584,13 +549,45 @@ class InputParser(TextParser):
             ),
         ]
 
+### 
+    class OutputParser(TextParser):
+        def __init__(self):
+            super().__init__()
+            self._quantities = [
+                Quantity(  
+                    'spectra',
+                    r'Polarizability|Absorption',
+                    sub_parser=TextParser(
+                        quantities=[
+                            Quantity(
+                                'output_spectra',
+                                rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
+                                repeats=False,
+                                sub_parser=TextParser(
+                                    quantities=[
+                                        Quantity(
+                                            'output_spectra_values',
+                                            rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
+                                            shape=(None, 3),  # Correction ici: None au lieu de vide
+                                            dtype=np.dtype(np.float64),
+                                        ),
+                                    ]
+                                ), 
+                            )
+                        ],
+                    ),
+                )
+            ]
+
+###
+
 
 class YamboParser:
     def __init__(self):
         self.mainfile_parser = MainfileParser()
         self.input_parser = InputParser()
         self.netcdf_parser = NetCDFParser()
-        self.output_parser = OutputParser()
+        self.spectra_parser = OutputParser() 
         self.metainfo_map = {
             'cpu': 'cores',
             'threads': 'threads_per_core',
@@ -944,38 +941,6 @@ class YamboParser:
                 self.netcdf_parser.parse()
                 self.parse_calculation(source.qp_properties)
 
-    ###
-    def resolve_spectra_yambo(self, path, energies, intensities): 
-        spectra = traverse_reversed(self.entry_archive, path)
-        if not spectra:
-            return None
-        spectra_root = []
-        for spectrum in spectra:
-            n_energies = spectrum.n_energies
-            if n_energies and n_energies > 0:
-                spectra_results = Spectra(
-                    type=spectrum.type, label='computation', n_energies=n_energies
-                )
-                provenance = spectra_results.m_create(SpectraProvenance)
-                provenance.electronic_structure = spectrum.provenance
-                if valid_array(energies) and valid_array(intensities):
-                    spectra_results.energies = energies
-                    spectra_results.intensities = intensities
-                    if spectrum.intensities_units:
-                        spectra_results.intensities_units = spectrum.intensities_units
-                    spectra_root.insert(0, spectra_results)
-        return spectra_root
-    
-    def parse_spectrum(self):
-        source = module.spectra  
-        if source is None:
-            return
-        self._module = x_yambo_spectra  
-        path = ['results', 'properties', 'spectroscopic']
-        energies = output_spectra_values[:, 0]
-        intensities = output_spectra_values[:, 1]
-        spectra = self.resolve_spectra_yambo(path, energies, intensities) 
-    ###
     
 
     def parse(self, filepath, archive, logger):
@@ -1005,6 +970,12 @@ class YamboParser:
                 key = key.strip().replace('/', '').replace(' ', '_').lower()
                 val = val == 'yes' if val in ['yes', 'no'] else val
                 setattr(run, 'x_yambo_%s' % key, val)
+
+        spectra_file = self.mainfile_parser.get('spectra_data_file')
+        if spectra_file:
+            spectra_path = os.path.join(self.maindir, spectra_file)
+            if os.path.exists(spectra_path):
+                self.spectra_parser.mainfile = spectra_path
         
         def parse_module(module):
             self.parse_dipoles(module)
@@ -1026,3 +997,26 @@ class YamboParser:
             parse_module(module)
 
         self.netcdf_parser.close()
+        
+        
+            
+       
+        
+    def parse_spectra(self):
+        run.calculation.append(calc)
+        spectra_file = self.filepath  
+        
+        if os.path.exists(spectra_file):
+            self.spectra_parser = spectra_file
+            data = self.spectra_parser.data
+            sec_spectra = Spectra()
+            calc.spectra.append(sec_spectra)
+            
+            if data is not None :
+                sec_spectra.n_energies = data.shape[0]
+                sec_spectra.excitation_energies = data[:, 0] * ureg.eV
+                sec_spectra.intensities = data[:, 1]
+
+            self.parse_spectra(calc)
+
+    ###
