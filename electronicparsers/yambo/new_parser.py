@@ -996,25 +996,24 @@ class YamboParser:
        
         
     def parse_spectra(self):
+        
         source = module.output_spectra_values
         if source is None:
             return
         run = Run()
         calc = Calculation()
         run.calculation.append(calc)
-      
+
         for output in source.get('output_spectra_values', []):
-            path = os.path.join(self.maindir, os.path.dirname(output.get('file', '')))
-            if not os.path.isdir(path):
-                continue
-        spectra_path = os.path.join(self.maindir, spectra_file)
+            x_yambo_output = x_yambo_io()
+            section.x_yambo_output.append(x_yambo_output)
+            x_yambo_output.x_yambo_file = output.file
+            x_yambo_output.x_yambo_sn = output.sn
+            spectra_file = x_yambo_output.x_yambo_file
 
-        spectra_file = self.filepath  
-
-        
-        if os.path.exists(spectra_file):
-            self.spectra_parser = spectra_file
-            data = self.spectra_parser.data
+        if spectra_file:
+            sectra_file = os.path.join(self.maindir, os.path.dirname(output.get('file', '')))
+            data = self.spectra_file.data
             sec_spectra = Spectra()
             calc.spectra.append(sec_spectra)
             
@@ -1023,6 +1022,6 @@ class YamboParser:
                 sec_spectra.excitation_energies = data[:, 0] * ureg.eV
                 sec_spectra.intensities = data[:, 1]
 
-  self.parse_spectra(calc)
+      self.parse_spectra(calc)
 
     ###
