@@ -995,33 +995,33 @@ class YamboParser:
             
        
         
-    def parse_spectra(self):
-        
-        source = module.output_spectra_values
-        if source is None:
-            return
-        run = Run()
-        calc = Calculation()
-        run.calculation.append(calc)
-
-        for output in source.get('output_spectra_values', []):
-            x_yambo_output = x_yambo_io()
-            section.x_yambo_output.append(x_yambo_output)
-            x_yambo_output.x_yambo_file = output.file
-            x_yambo_output.x_yambo_sn = output.sn
-            spectra_file = x_yambo_output.x_yambo_file
-
-        if spectra_file:
-            sectra_file = os.path.join(self.maindir, os.path.dirname(output.get('file', '')))
-            data = self.spectra_file.data
-            sec_spectra = Spectra()
-            calc.spectra.append(sec_spectra)
+        def parse_spectra(self):
             
-            if data is not None :
-                sec_spectra.n_energies = data.shape[0]
-                sec_spectra.excitation_energies = data[:, 0] * ureg.eV
-                sec_spectra.intensities = data[:, 1]
+            source = module.output_spectra_values
+            if source is None:
+                return
+            run = Run()
+            calc = Calculation()
+            run.calculation.append(calc)
 
-      self.parse_spectra(calc)
+            for output in source.get('output_spectra_values', []):
+                x_yambo_output = x_yambo_io()
+                x_yambo_output.append(x_yambo_output)
+                x_yambo_output.x_yambo_file = output.file
+                x_yambo_output.x_yambo_sn = output.sn
+                spectra_file = x_yambo_output.x_yambo_file
+
+            if spectra_file:
+                spectra_file = os.path.join(self.maindir, os.path.dirname(output.get('file', '')))
+                data = self.spectra_file.data
+                sec_spectra = Spectra()
+                calc.spectra.append(sec_spectra)
+            
+                if data is not None :
+                    sec_spectra.n_energies = data.shape[0]
+                    sec_spectra.excitation_energies = data[:, 0] * ureg.eV
+                    sec_spectra.intensities = data[:, 1]
+
+            self.parse_spectra(calc)
 
     ###
