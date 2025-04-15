@@ -549,35 +549,36 @@ class InputParser(TextParser):
             ),
         ]
 
-### 
-    class OutputParser(TextParser):
-        def __init__(self):
-            super().__init__()
-            self._quantities = [
-                Quantity(  
-                    'spectra',
-                    r'Polarizability|Absorption',
-                    sub_parser=TextParser(
-                        quantities=[
-                            Quantity(
-                                'output_spectra',
-                                rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
-                                repeats=False,
-                                sub_parser=TextParser(
-                                    quantities=[
-                                        Quantity(
-                                            'output_spectra_values',
-                                            rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
-                                            shape=(None, 3),  # Correction ici: None au lieu de vide
-                                            dtype=np.dtype(np.float64),
-                                        ),
-                                    ]
-                                ), 
-                            )
-                        ],
-                    ),
-                )
-            ]
+###
+class OutputParser(TextParser):
+    def __init__(self):
+        super().__init__()
+        self._quantities = [
+            Quantity(  
+                'spectra',
+                r'Polarizability|Absorption',
+                sub_parser=TextParser(
+                    quantities=[
+                        Quantity(
+                            'output_spectra',
+                            rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
+                            repeats=False,
+                            sub_parser=TextParser(
+                                quantities=[
+                                    Quantity(
+                                        'output_spectra_values',
+                                        rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
+                                        shape=(None, 3),  # Correction ici: None au lieu de vide
+                                        dtype=np.dtype(np.float64),
+                                    ),
+                                ]
+                            ), 
+                        )
+                    ],
+                ),
+            )
+        ]
+            
 
 ###
 
@@ -777,7 +778,6 @@ class YamboParser:
 
 
             def process_and_select(positions, max_n_atoms, n_atoms): 
-"""we define the process_and_select function within the parse_input function"""
                 try:
                     positions = np.array(positions)
                     blocks = []
@@ -1003,6 +1003,8 @@ class YamboParser:
        
         
     def parse_spectra(self):
+        run = Run()
+        calc = Calculation()
         run.calculation.append(calc)
         spectra_file = self.filepath  
         
