@@ -771,6 +771,7 @@ class YamboParser:
 
 
             def process_and_select(positions, max_n_atoms, n_atoms): 
+                """we define the process_and_select function within the parse_input function"""
                 try:
                     positions = np.array(positions)
                     blocks = []
