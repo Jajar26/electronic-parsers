@@ -971,11 +971,11 @@ class YamboParser:
                 val = val == 'yes' if val in ['yes', 'no'] else val
                 setattr(run, 'x_yambo_%s' % key, val)
 
-        spectra_file = self.mainfile_parser.get('spectra_data_file')
-        if spectra_file:
-            spectra_path = os.path.join(self.maindir, spectra_file)
-            if os.path.exists(spectra_path):
-                self.spectra_parser.mainfile = spectra_path
+        #spectra_file = self.mainfile_parser.get('spectra_data_file')
+        #if spectra_file:
+         #   spectra_path = os.path.join(self.maindir, spectra_file)
+          #  if os.path.exists(spectra_path):
+           #     self.spectra_parser.mainfile = spectra_path
         
         def parse_module(module):
             self.parse_dipoles(module)
