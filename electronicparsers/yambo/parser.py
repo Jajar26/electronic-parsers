@@ -500,7 +500,7 @@ class MainfileParser(TextParser):
                     quantities=[
                         Quantity(
                           'output_spectra',
-                            rf'E/ev[1] \s*\w*\W*  Im[2] \s*\w*\W* Re[3] \s*\w*\W* (Im[4] \s*\w*\W* Re[5])*',
+                            rf'E/ev[1]\s*\w*\W* Im[2]\s*\w*\W*Re[3]\s*\w*\W*(Im[4]\s*\w*\W* Re[5])*',
                             repeats=False,
                             sub_parser=TextParser(
                                 quantities=[
