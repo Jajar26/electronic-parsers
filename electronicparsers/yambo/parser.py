@@ -499,8 +499,8 @@ class MainfileParser(TextParser):
                 sub_parser=TextParser(
                     quantities=[
                         Quantity(
-                          'output_spectra',
-                            rf'E/ev[1]\s*\w*\W* Im[2]\s*\w*\W*Re[3]\s*\w*\W*(Im[4]\s*\w*\W* Re[5])*',
+                            'output_spectra',
+                            r'E/ev\[1\]\s+.?Im\[2\]\s+.?Re\[3\](\s+.?Im\[4\]\s+.?Re\[5\])*,
                             repeats=False,
                             sub_parser=TextParser(
                                 quantities=[
