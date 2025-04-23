@@ -1,4 +1,3 @@
-
 #
 # Copyright The NOMAD Authors.
 #
@@ -42,7 +41,7 @@ from .metainfo.yambo import (
     x_yambo_bare_xc_bandenergies,
     x_yambo_module,
     x_yambo_transferred_momenta,
-    x_yambo_spectroscopic,   # to be defined in the yambo metainfo
+    x_yambo_spectra
 )
 
 
@@ -494,7 +493,33 @@ class MainfileParser(TextParser):
                 repeats=False,
                 sub_parser=TextParser(quantities=io_quantities),
             ),
+            Quantity(  
+                'x_yambo_spectra',
+                r'Polarizability|Absorption',
+                sub_parser=TextParser(
+                    quantities=[
+                        Quantity(
+                          'output_spectra',
+                            rf'E/ev[1] \s*\w*\W*  Im[2] \s*\w*\W* Re[3] \s*\w*\W* (Im[4] \s*\w*\W* Re[5])*',
+                            repeats=False,
+                            sub_parser=TextParser(
+                                quantities=[
+                                    Quantity(
+                                        'output_spectra_values',
+                                        rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
+                                        shape=(None, 3),  
+                                        dtype=np.dtype(np.float64),
+                                        sub_parser=TextParser(quantities=io_quantities),
+
+                                    ),
+                                ]
+                            ), 
+                        )
+                    ],
+                ),
+            )
         ]
+  
 
 
 
@@ -549,41 +574,6 @@ class InputParser(TextParser):
             ),
         ]
 
-###
-class OutputParser(TextParser):
-    def __init__(self):
-        super().__init__()
-
-    def init_quantities(self):
-        re_f = r'[-+]*\d*\.\d+[Ee]*[-+]*\d*'
-        self._quantities = [
-            Quantity(  
-                'spectra',
-                r'Polarizability|Absorption',
-                sub_parser=TextParser(
-                    quantities=[
-                        Quantity(
-                            'output_spectra',
-                            rf'E/ev[1] \s* Im[2] \s* Re[3] \s* (Im[4] \s* Re[5] \s*)*',
-                            repeats=False,
-                            sub_parser=TextParser(
-                                quantities=[
-                                    Quantity(
-                                        'output_spectra_values',
-                                        rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
-                                        shape=(None, 3),  # Correction ici: None au lieu de vide
-                                        dtype=np.dtype(np.float64),
-                                    ),
-                                ]
-                            ), 
-                        )
-                    ],
-                ),
-            )
-        ]
-            
-
-###
 
 
 class YamboParser:
@@ -591,7 +581,6 @@ class YamboParser:
         self.mainfile_parser = MainfileParser()
         self.input_parser = InputParser()
         self.netcdf_parser = NetCDFParser()
-        self.spectra_parser = OutputParser() 
         self.metainfo_map = {
             'cpu': 'cores',
             'threads': 'threads_per_core',
@@ -754,7 +743,34 @@ class YamboParser:
             if key.startswith('x_yambo') and val is not None:
                 setattr(calc, key, val)
 
+
+
+#        output_spectra_values =  self.mainfile_parser.get('x_yambo_spectra',{}).get(
+#                'output_spectra_values'
+#        )
+        output_spectra_values = source.get('output_spectra_values',[])
+
+
+#            for output in source.get('output_spectra_values', []):
+
+#                spectra_file = os.path.join(self.maindir, os.path.dirname(output.get('file', '')))
+
+#                spectra.n_energies = output_spectra_values.shape[0]
+#                spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
+#                spectra.intensities = output_spectra_values[:, 1]
+
+
+        spectra = Spectra(
+        n_energies = output_spectra_values.shape[0],
+        excitation_energies = output_spectra_values[:, 0] * ureg.eV,
+        intensities = output_spectra_values[:, 1],
+        )
+
+        calc.spectra.append(spectra)
+
+
         return calc
+
 
     def parse_input(self):
         if self.mainfile_parser.cpu_files_io.input is None:
@@ -896,7 +912,7 @@ class YamboParser:
                 band_energy.x_yambo_vxc = vxc.transpose(1, 2, 0) * ureg.eV
 
         if source.energy_xc is not None:
-            calc.energy = Energy(xc=EnergyEntry(value=source.energy_xc))
+            calg.energy = Energy(xc=EnergyEntry(value=source.energy_xc))
 
     def parse_bare_xc(self, module):
         source = module.bare_xc
@@ -974,12 +990,6 @@ class YamboParser:
                 val = val == 'yes' if val in ['yes', 'no'] else val
                 setattr(run, 'x_yambo_%s' % key, val)
 
-        #spectra_file = self.mainfile_parser.get('spectra_data_file')
-        #if spectra_file:
-         #   spectra_path = os.path.join(self.maindir, spectra_file)
-          #  if os.path.exists(spectra_path):
-           #     self.spectra_parser.mainfile = spectra_path
-        
         def parse_module(module):
             self.parse_dipoles(module)
             self.parse_dynamic_dielectric_matrix(module)
@@ -1001,27 +1011,3 @@ class YamboParser:
 
         self.netcdf_parser.close()
         
-        
-            
-       
-        
-    def parse_spectra(self):
-        run = Run()
-        calc = Calculation()
-        run.calculation.append(calc)
-        spectra_file = self.filepath  
-        
-        if os.path.exists(spectra_file):
-            self.spectra_parser = spectra_file
-            data = self.spectra_parser.data
-            sec_spectra = Spectra()
-            calc.spectra.append(sec_spectra)
-            
-            if data is not None :
-                sec_spectra.n_energies = data.shape[0]
-                sec_spectra.excitation_energies = data[:, 0] * ureg.eV
-                sec_spectra.intensities = data[:, 1]
-
-            self.parse_spectra(calc)
-
-    ###
