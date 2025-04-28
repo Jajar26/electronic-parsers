@@ -500,21 +500,18 @@ class MainfileParser(TextParser):
                     quantities=[
                         Quantity(
                             'output_spectra',
-                            r'E/ev\[1\]\s+.?Im\[2\]\s+.?Re\[3\](\s+.?Im\[4\]\s+.?Re\[5\])*,
+#                           r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\](\s+.*?Im\[4\]\s+.*?Re\[5\])',
+                            r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\]',
                             repeats=False,
-                            sub_parser=TextParser(
-                                quantities=[
-                                    Quantity(
-                                        'output_spectra_values',
-                                        rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)*',
-                                        shape=(None, 3),  
-                                        dtype=np.dtype(np.float64),
-                                        sub_parser=TextParser(quantities=io_quantities),
-
-                                    ),
-                                ]
-                            ), 
-                        )
+                        ),
+                        Quantity(
+                            'output_spectra_values',
+#                           rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)',
+                            rf'\s*({re_f})\s*({re_f})\s*({re_f})',
+                            shape=(None, 3),  
+                            dtype=np.dtype(np.float64),
+                            sub_parser=TextParser(quantities=io_quantities),
+                        ),
                     ],
                 ),
             )
@@ -748,12 +745,12 @@ class YamboParser:
 #        output_spectra_values =  self.mainfile_parser.get('x_yambo_spectra',{}).get(
 #                'output_spectra_values'
 #        )
-        output_spectra_values = source.get('output_spectra_values',[])
-
+        spectra_path = os.path.join(self.maindir, output_spect.get('file*',''))
+        output_spectra_values = spectra_path.get('output_spectra_values',[])
+        output_spectra_values = np.array(output_spectra_values)
 
 #            for output in source.get('output_spectra_values', []):
 
-#                spectra_file = os.path.join(self.maindir, os.path.dirname(output.get('file', '')))
 
 #                spectra.n_energies = output_spectra_values.shape[0]
 #                spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
@@ -1011,3 +1008,7 @@ class YamboParser:
 
         self.netcdf_parser.close()
         
+        
+            
+       
+
