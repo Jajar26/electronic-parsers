@@ -745,9 +745,9 @@ class YamboParser:
 #        output_spectra_values =  self.mainfile_parser.get('x_yambo_spectra',{}).get(
 #                'output_spectra_values'
 #        )
-        spectra_path = os.path.join(self.maindir, output_spect.get('file*',''))
-        output_spectra_values = spectra_path.get('output_spectra_values',[])
-        output_spectra_values = np.array(output_spectra_values)
+     #   spectra_path = os.path.join(self.maindir, output_spect.get('file*',''))
+      #  output_spectra_values = spectra_path.get('output_spectra_values',[])
+       # output_spectra_values = np.array(output_spectra_values)
 
 #            for output in source.get('output_spectra_values', []):
 
@@ -757,13 +757,16 @@ class YamboParser:
 #                spectra.intensities = output_spectra_values[:, 1]
 
 
-        spectra = Spectra(
-        n_energies = output_spectra_values.shape[0],
-        excitation_energies = output_spectra_values[:, 0] * ureg.eV,
-        intensities = output_spectra_values[:, 1],
-        )
+        spectra = Spectra()
 
         calc.spectra.append(spectra)
+
+        output_spectra_values = np.array(output_spectra_values)
+        
+        n_energies = self.netcdf_parser.output_spectra_values.shape[0]
+        excitation_energies = self.netcdf_parser.output_spectra_values[:, 0] * ureg.eV
+        intensities = self.netcdf_parser.output_spectra_values[:, 1]
+
 
 
         return calc
