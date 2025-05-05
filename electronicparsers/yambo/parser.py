@@ -41,7 +41,7 @@ from .metainfo.yambo import (
     x_yambo_bare_xc_bandenergies,
     x_yambo_module,
     x_yambo_transferred_momenta,
-    x_yambo_spectra
+  #  x_yambo_spectra
 )
 
 
@@ -494,7 +494,7 @@ class MainfileParser(TextParser):
                 sub_parser=TextParser(quantities=io_quantities),
             ),
             Quantity(  
-                'x_yambo_spectra',
+                'sp',
                 r'Polarizability|Absorption',
                 sub_parser=TextParser(
                     quantities=[
@@ -761,7 +761,7 @@ class YamboParser:
 
         calc.spectra.append(spectra)
 
-        output_spectra_values = np.array(x_yambo_spectra.output_spectra_values)
+        output_spectra_values = np.array(sp.output_spectra_values)
         
         n_energies = self.netcdf_parser.output_spectra_values.shape[0]
         excitation_energies = self.netcdf_parser.output_spectra_values[:, 0] * ureg.eV
