@@ -41,7 +41,6 @@ from .metainfo.yambo import (
     x_yambo_bare_xc_bandenergies,
     x_yambo_module,
     x_yambo_transferred_momenta,
-  #  x_yambo_spectra
 )
 
 
