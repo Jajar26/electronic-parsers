@@ -460,14 +460,14 @@ class Calculation(runschema.calculation.Calculation):
         """,
     )
 
-     x_yambo_output_spectra = Quantity(
+    x_yambo_output_spectra = Quantity(
          type=str,
          shape=[],
          description="""
          """,
      )
 
-     x_yambo_output_spectra_values = Quantity(
+    x_yambo_output_spectra_values = Quantity(
          type=np.float64,
          shape=[None, 3],
          description="""
