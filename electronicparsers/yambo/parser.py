@@ -763,9 +763,9 @@ class YamboParser:
 
         output_spectra_values = np.array(x_yambo_spectra.output_spectra_values)
         
-        n_energies = self.netcdf_parser. x_yambo_spectra.output_spectra_values.shape[0]
-        excitation_energies = self.netcdf_parser. x_yambo_spectra.output_spectra_values[:, 0] * ureg.eV
-        intensities = self.netcdf_parser. x_yambo_spectra.output_spectra_values[:, 1]
+        n_energies = self.netcdf_parser.output_spectra_values.shape[0]
+        excitation_energies = self.netcdf_parser.output_spectra_values[:, 0] * ureg.eV
+        intensities = self.netcdf_parser.output_spectra_values[:, 1]
 
 
 
