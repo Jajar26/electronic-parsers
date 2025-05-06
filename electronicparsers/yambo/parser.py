@@ -62,6 +62,7 @@ class MainfileParser(TextParser):
             ),
             Quantity('file', r'\[(?:RD|WR)(.+?)\]', dtype=str),
             Quantity('sn', r'- S/N *(\d+)', dtype=str),
+            Quantity('out_spectra_f',r'E/ev[1]', dtype=str),
         ]
 
         energies_quantities = [
@@ -492,28 +493,49 @@ class MainfileParser(TextParser):
                 repeats=False,
                 sub_parser=TextParser(quantities=io_quantities),
             ),
-            Quantity(  
-                'sp',
-                r'Polarizability|Absorption',
-                sub_parser=TextParser(
-                    quantities=[
-                        Quantity(
-                            'output_spectra',
-#                           r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\](\s+.*?Im\[4\]\s+.*?Re\[5\])',
-                            r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\]',
-                            repeats=False,
-                        ),
-                        Quantity(
-                            'output_spectra_values',
-#                           rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)',
-                            rf'\s*({re_f})\s*({re_f})\s*({re_f})',
-                            shape=(None, 3),  
-                            dtype=np.dtype(np.float64),
-                            sub_parser=TextParser(quantities=io_quantities),
-                        ),
-                    ],
-                ),
-            )
+#            Quantity(  
+#                'sp',
+#                r'Polarizability|Absorption',
+#                sub_parser=TextParser(
+#                    quantities=[
+#                        Quantity(
+#                            'output_spectra',
+##                           r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\](\s+.*?Im\[4\]\s+.*?Re\[5\])',
+#                            r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\]',
+#                            repeats=False,
+#                        ),
+#                        Quantity(
+#                            'output_spectra_values',
+##                           rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)',
+#                            rf'\s*({re_f})\s*({re_f})\s*({re_f})',
+#                            shape=(None, 3),  
+##                            repeats=True,
+##                            dtype=np.float64,
+#                            dtype=np.dtype(np.float64),
+##                            sub_parser=TextParser(quantities=io_quantities),
+#                        ),
+#                    ],
+#                ),
+#            ),
+#        ]
+
+#            Quantity(
+#                'output_spectra',
+##               r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\](\s+.*?Im\[4\]\s+.*?Re\[5\])',
+#                r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\]',
+#                repeats=False,
+#            ),
+#
+            Quantity(
+                'output_spectra_values',
+                rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)',
+#                rf'\s*({re_f})\s*({re_f})\s*({re_f})',
+#               shape=(None, 3),  
+                repeats=True,
+                dtype=np.float64,
+#               dtype=np.dtype(np.float64),
+#               sub_parser=TextParser(quantities=io_quantities),                
+            ),
         ]
   
 
@@ -740,31 +762,26 @@ class YamboParser:
                 setattr(calc, key, val)
 
 
+        spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o')]
+        for spectra_file in spectra_files:
+            self.mainfile_parser.mainfile = os.path.join(self.mainfile_parser.maindir,spectra_file)
+#            if self.netcdf_parser.output_spectra_values is not None:
+                
 
-#        output_spectra_values =  self.mainfile_parser.get('x_yambo_spectra',{}).get(
-#                'output_spectra_values'
-#        )
-     #   spectra_path = os.path.join(self.maindir, output_spect.get('file*',''))
-      #  output_spectra_values = spectra_path.get('output_spectra_values',[])
-       # output_spectra_values = np.array(output_spectra_values)
+#        self.netcdf_parser.mainfile = os.path.join(self.maindir, self.netcdf_parser.sp.output_spectra.out_spectra_f)
 
-#            for output in source.get('output_spectra_values', []):
+##        if self.netcdf_parser.mainfile is not None:
 
+            spectra = Spectra()
 
-#                spectra.n_energies = output_spectra_values.shape[0]
-#                spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
-#                spectra.intensities = output_spectra_values[:, 1]
+            calc.spectra.append(spectra)
 
 
-        spectra = Spectra()
-
-        calc.spectra.append(spectra)
-
-        output_spectra_values = np.array(sp.output_spectra_values)
-        
-        spectra.n_energies = self.netcdf_parser.output_spectra_values.shape[0]
-        spectra.excitation_energies = self.netcdf_parser.output_spectra_values[:, 0] * ureg.eV
-        spectra.intensities = self.netcdf_parser.output_spectra_values[:, 1]
+            output_spectra_values = self.mainfile_parser.get('output_spectra_values')
+            output_spectra_values = np.array(output_spectra_values)
+            spectra.n_energies =  output_spectra_values.shape[0]
+            spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
+            spectra.intensities = output_spectra_values[:, 1]
 
 
 
@@ -772,6 +789,8 @@ class YamboParser:
 
 
     def parse_input(self):
+        self.mainfile_parser = MainfileParser()
+        self.mainfile_parser.mainfile = self.filepath
         if self.mainfile_parser.cpu_files_io.input is None:
             return
 
@@ -1009,8 +1028,3 @@ class YamboParser:
             parse_module(module)
 
         self.netcdf_parser.close()
-        
-        
-            
-       
-
