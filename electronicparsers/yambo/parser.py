@@ -522,7 +522,7 @@ class MainfileParser(TextParser):
 
             Quantity(
                 'output_spectra_values',
-                rf'\s*({re_f})\s+({re_f})(\s+({re_f})\s+({re_f})\s+({re_f}))*'
+                rf'\s*({re_f})\s+({re_f})\s+({re_f})\s+({re_f})\s+({re_f})',                
                 repeats=True,
                 dtype=np.float64,            
             ),
