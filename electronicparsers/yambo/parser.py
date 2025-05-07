@@ -519,21 +519,12 @@ class MainfileParser(TextParser):
 #            ),
 #        ]
 
-#            Quantity(
-#                'output_spectra',
-##               r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\](\s+.*?Im\[4\]\s+.*?Re\[5\])',
-#                r'E/ev\[1\]\s+.*?Im\[2\]\s+.*?Re\[3\]',
-#                repeats=False,
-#            ),
-#
+
             Quantity(
                 'output_spectra_values',
-                rf'\s*({re_f})\s+({re_f})\s+({re_f})(?:\s+({re_f}))?(?:\s+({re_f}))?'
-#               shape=(None, 3),  
+                rf'\s*({re_f})\s+({re_f})(\s+({re_f})\s+({re_f})\s+({re_f}))*'
                 repeats=True,
-                dtype=np.float64,
-#               dtype=np.dtype(np.float64),
-#               sub_parser=TextParser(quantities=io_quantities),                
+                dtype=np.float64,            
             ),
         ]
   
