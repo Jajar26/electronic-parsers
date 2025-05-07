@@ -756,6 +756,7 @@ class YamboParser:
                 spectra = Spectra()
 
                 calc.spectra.append(spectra)
+                spectra.type =  self.mainfile_parser.get('sp_file')
 
 
                 output_spectra_values = self.mainfile_parser.get('output_spectra_values')
