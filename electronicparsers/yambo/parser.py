@@ -62,7 +62,7 @@ class MainfileParser(TextParser):
             ),
             Quantity('file', r'\[(?:RD|WR)(.+?)\]', dtype=str),
             Quantity('sn', r'- S/N *(\d+)', dtype=str),
-            Quantity('out_spectra_f',r'E/ev[1]', dtype=str),
+      #      Quantity('out_spectra_f',r'E/ev[1]', dtype=str),
         ]
 
         energies_quantities = [
