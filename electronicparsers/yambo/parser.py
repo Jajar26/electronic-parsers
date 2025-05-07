@@ -734,6 +734,18 @@ class YamboParser:
         original_input = self.mainfile_parser.cpu_files_io.input
 
 
+#        spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o') and if (keyword in sp_file for keyword in ['EELS', 'Polarizability', 'Absorption'])]
+#        spectra_files = []
+#        for sp_file in os.listdir(self.mainfile_parser.maindir):
+#            if sp_file.startswith('o'):
+#                if self.mainfile_parser.sp_type is not None:
+#                spectrum_type = mainfile_parser.get('sp_type', 0) 
+#                if spectrum_type != 0:
+
+#                if 'EELS' in sp_file or 'Polarizability' in sp_file or 'Absorption' in sp_file:
+#                    spectra_files.append(sp_file) 
+#                    spectrum_type = None
+
         spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o')] 
 
         for spectra_file in spectra_files:
@@ -744,8 +756,9 @@ class YamboParser:
                 spectra = Spectra()
 
                 calc.spectra.append(spectra)
-                spectra.type =  self.mainfile_parser.get('sp_type')
 
+                if self.mainfile_parser.get('sp_type') == 'EELS':
+                    spectra.type = self.mainfile_parser.get('sp_type')
 
                 output_spectra_values = self.mainfile_parser.get('output_spectra_values')
                 output_spectra_values = np.array(output_spectra_values)
