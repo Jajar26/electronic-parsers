@@ -761,6 +761,8 @@ class YamboParser:
             if key.startswith('x_yambo') and val is not None:
                 setattr(calc, key, val)
 
+        original_input = self.mainfile_parser.cpu_files_io.input
+
 
         spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o')]
         for spectra_file in spectra_files:
@@ -783,7 +785,8 @@ class YamboParser:
             spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
             spectra.intensities = output_spectra_values[:, 1]
 
-
+        self.mainfile_parser.mainfile = self.filepath
+        self.mainfile_parser.cpu_files_io.input = original_input
 
         return calc
 
