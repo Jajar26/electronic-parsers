@@ -754,15 +754,9 @@ class YamboParser:
         original_input = self.mainfile_parser.cpu_files_io.input
 
 
-        spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o')]
+        spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o') and any(keyword in sp_file for keyword in ['EELS', 'Polarizability', 'Absorption'])]
         for spectra_file in spectra_files:
             self.mainfile_parser.mainfile = os.path.join(self.mainfile_parser.maindir,spectra_file)
-#            if self.netcdf_parser.output_spectra_values is not None:
-                
-
-#        self.netcdf_parser.mainfile = os.path.join(self.maindir, self.netcdf_parser.sp.output_spectra.out_spectra_f)
-
-##        if self.netcdf_parser.mainfile is not None:
 
             spectra = Spectra()
 
