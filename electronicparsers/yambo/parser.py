@@ -791,8 +791,6 @@ class YamboParser:
 
 
     def parse_input(self):
-        self.mainfile_parser = MainfileParser()
-        self.mainfile_parser.mainfile = self.filepath
         if self.mainfile_parser.cpu_files_io.input is None:
             return
 
