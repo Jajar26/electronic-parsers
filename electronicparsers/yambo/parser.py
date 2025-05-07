@@ -528,8 +528,7 @@ class MainfileParser(TextParser):
 #
             Quantity(
                 'output_spectra_values',
-                rf'\s*({re_f})\s*({re_f})\s*({re_f})\s*(({re_f})\s*({re_f})\s*)',
-#                rf'\s*({re_f})\s*({re_f})\s*({re_f})',
+                rf'\s*({re_f})\s+({re_f})\s+({re_f})(?:\s+({re_f}))?(?:\s+({re_f}))?'
 #               shape=(None, 3),  
                 repeats=True,
                 dtype=np.float64,
