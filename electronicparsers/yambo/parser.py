@@ -493,6 +493,8 @@ class MainfileParser(TextParser):
                 sub_parser=TextParser(quantities=io_quantities),
             ),
 
+###
+
             Quantity(
                 'sp_type',
                 r'(EELS|Polarizability|Absorption)',
@@ -501,14 +503,13 @@ class MainfileParser(TextParser):
 
             Quantity(
                 'output_spectra_values',
-#                rf'\s*({re_f})\s+({re_f})\s+({re_f})\s+({re_f})\s+({re_f})',
                 rf'\s*({re_f})\s+({re_f})\s+({re_f})',
                 repeats=True,
                 dtype=np.float64,
             ),
         ]
-  
 
+###
 
 
 class NetCDFParser(FileParser):
@@ -731,20 +732,9 @@ class YamboParser:
             if key.startswith('x_yambo') and val is not None:
                 setattr(calc, key, val)
 
+    ###
+
         original_input = self.mainfile_parser.cpu_files_io.input
-
-
-#        spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o') and if (keyword in sp_file for keyword in ['EELS', 'Polarizability', 'Absorption'])]
-#        spectra_files = []
-#        for sp_file in os.listdir(self.mainfile_parser.maindir):
-#            if sp_file.startswith('o'):
-#                if self.mainfile_parser.sp_type is not None:
-#                spectrum_type = mainfile_parser.get('sp_type', 0) 
-#                if spectrum_type != 0:
-
-#                if 'EELS' in sp_file or 'Polarizability' in sp_file or 'Absorption' in sp_file:
-#                    spectra_files.append(sp_file) 
-#                    spectrum_type = None
 
         spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o')] 
 
@@ -768,6 +758,8 @@ class YamboParser:
 
         self.mainfile_parser.mainfile = self.filepath
         self.mainfile_parser.cpu_files_io.input = original_input
+
+    ###
 
         return calc
 
