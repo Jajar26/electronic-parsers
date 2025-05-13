@@ -460,19 +460,14 @@ class Calculation(runschema.calculation.Calculation):
         """,
     )
 
-    x_yambo_output_spectra = Quantity(
-         type=str,
-         shape=[],
-         description="""
-         """,
-     )
 
-    x_yambo_output_spectra_values = Quantity(
-         type=np.float64,
-         shape=[None, 3],
-         description="""
-         """,
-     )
+    x_yambo_sp =  Quantity(
+        type=JSON,
+        shape=[],
+        description="""
+        """,
+    )
+
 
     x_yambo_local_xc_nonlocal_fock_bandenergies = SubSection(
         sub_section=x_yambo_local_xc_nonlocal_fock_bandenergies.m_def, repeats=True
@@ -482,7 +477,24 @@ class Calculation(runschema.calculation.Calculation):
         sub_section=x_yambo_bare_xc_bandenergies.m_def, repeats=True
     )
 
+
+class x_yambo_sp(MSection):
+    m_def = Section(validate=False)
+
+    x_yambo_output_spectra = Quantity(
+         type=str,
+         shape=[],
+         description="""
+         """,
+    )
     
+    x_yambo_output_spectra_values = Quantity(
+         type=np.float64,
+         shape=[None, 3],
+         description="""
+         """,
+    )
+
 
 
 
