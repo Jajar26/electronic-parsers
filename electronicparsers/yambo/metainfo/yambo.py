@@ -1,12 +1,3 @@
-
-
-Aller au contenu
-Utiliser Gmail avec un lecteur d'écran
-Conversations
-54 % sur 15 Go utilisés
-Conditions d'utilisation · Confidentialité · Règlement du programme
-Dernière activité sur le compte : dans 1 minute
-Ce compte est ouvert depuis un autre emplacement. · Détails
 #
 # Copyright The NOMAD Authors.
 #
@@ -620,4 +611,3 @@ class Method(runschema.method.Method):
 
     x_yambo_dyson = SubSection(sub_section=x_yambo_dyson.m_def, repeats=True)
 yambo.py
-Affichage de yambo.py en cours...
