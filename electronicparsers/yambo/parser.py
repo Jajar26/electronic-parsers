@@ -48,10 +48,28 @@ class MainfileParser(TextParser):
     def __init__(self):
         super().__init__()
 
+
+
+
     def init_quantities(self):
         re_f = r'[-+]*\d*\.\d+[Ee]*[-+]*\d*'
 
-        
+
+#        def to_values(block: str):
+#            values = []
+#            names = []
+#            for line in block.strip().splitlines():
+#                if line.startswith('#'):
+#                    # ignore comments
+#                    continue
+#                if not names:
+#                    names = [k.strip() for k in line.split()]
+#                else:
+#                    values.append(line.split())
+#            values = np.array(values, dtype=np.float64)
+#            return values
+
+
         io_quantities = [
 
             Quantity(
@@ -492,7 +510,6 @@ class MainfileParser(TextParser):
                 repeats=False,
                 sub_parser=TextParser(quantities=io_quantities),
             ),
-
 ###
 
             Quantity(
@@ -501,13 +518,7 @@ class MainfileParser(TextParser):
                 repeats=False,
             ),
 
-            Quantity(
-                'output_spectra_values',
-                rf'\s*({re_f})\s+({re_f})\s+({re_f})',
-                repeats=True,
-                dtype=np.float64,
-            ),
-        ]
+            ]
 
 ###
 
@@ -736,6 +747,21 @@ class YamboParser:
 
         original_input = self.mainfile_parser.cpu_files_io.input
 
+
+        def to_values(block):
+            values = []
+            names = []
+            for line in block.strip().splitlines():
+
+                if line.startswith('#    E/ev[1]'):
+                    names = [k.strip() for k in line.split() if k != '#']
+                    continue
+                if names and not line.startswith('#'):
+                    values.append(line.split())
+            values = np.array(values, dtype=np.float64)
+            return values
+
+
         spectra_files = [ sp_file for sp_file in os.listdir(self.mainfile_parser.maindir) if sp_file.startswith('o')] 
 
         for spectra_file in spectra_files:
@@ -747,13 +773,17 @@ class YamboParser:
 
                 calc.spectra.append(spectra)
 
-                if self.mainfile_parser.get('sp_type') == 'EELS':
+                if self.mainfile_parser.get('sp_type') == 'Absorption':
+                    spectra.type = 'Dielectric function'
+                else:
                     spectra.type = self.mainfile_parser.get('sp_type')
+                with open(self.mainfile_parser.mainfile) as f:    
+                    spectra_file_content = f.read()
 
-                output_spectra_values = self.mainfile_parser.get('output_spectra_values')
-                output_spectra_values = np.array(output_spectra_values)
+                output_spectra_values = to_values(spectra_file_content)
+
                 spectra.n_energies =  output_spectra_values.shape[0]
-                spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
+                spectra.excitation_energies = output_spectra_values[:, 0] 
                 spectra.intensities = output_spectra_values[:, 1]
 
         self.mainfile_parser.mainfile = self.filepath
