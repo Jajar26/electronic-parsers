@@ -461,7 +461,7 @@ class Calculation(runschema.calculation.Calculation):
     )
 
 
-    x_yambo_spectra_header =  Quantity(
+    x_yambo_sp_type =  Quantity(
         type=str,
         shape=[],
         description="""
