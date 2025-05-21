@@ -1,3 +1,12 @@
+
+
+Aller au contenu
+Utiliser Gmail avec un lecteur d'écran
+Conversations
+54 % sur 15 Go utilisés
+Conditions d'utilisation · Confidentialité · Règlement du programme
+Dernière activité sur le compte : dans 1 minute
+Ce compte est ouvert depuis un autre emplacement. · Détails
 #
 # Copyright The NOMAD Authors.
 #
@@ -461,8 +470,8 @@ class Calculation(runschema.calculation.Calculation):
     )
 
 
-    x_yambo_sp =  Quantity(
-        type=JSON,
+    x_yambo_spectra_header =  Quantity(
+        type=str,
         shape=[],
         description="""
         """,
@@ -475,24 +484,6 @@ class Calculation(runschema.calculation.Calculation):
 
     x_yambo_bare_xc_bandenergies = SubSection(
         sub_section=x_yambo_bare_xc_bandenergies.m_def, repeats=True
-    )
-
-
-class x_yambo_sp(MSection):
-    m_def = Section(validate=False)
-
-    x_yambo_output_spectra = Quantity(
-         type=str,
-         shape=[],
-         description="""
-         """,
-    )
-    
-    x_yambo_output_spectra_values = Quantity(
-         type=np.float64,
-         shape=[None, 3],
-         description="""
-         """,
     )
 
 
@@ -628,3 +619,5 @@ class Method(runschema.method.Method):
     x_yambo_dipoles = SubSection(sub_section=x_yambo_dipoles.m_def, repeats=True)
 
     x_yambo_dyson = SubSection(sub_section=x_yambo_dyson.m_def, repeats=True)
+yambo.py
+Affichage de yambo.py en cours...
