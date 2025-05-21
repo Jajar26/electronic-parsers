@@ -54,22 +54,6 @@ class MainfileParser(TextParser):
     def init_quantities(self):
         re_f = r'[-+]*\d*\.\d+[Ee]*[-+]*\d*'
 
-
-#        def to_values(block: str):
-#            values = []
-#            names = []
-#            for line in block.strip().splitlines():
-#                if line.startswith('#'):
-#                    # ignore comments
-#                    continue
-#                if not names:
-#                    names = [k.strip() for k in line.split()]
-#                else:
-#                    values.append(line.split())
-#            values = np.array(values, dtype=np.float64)
-#            return values
-
-
         io_quantities = [
 
             Quantity(
@@ -808,7 +792,7 @@ class YamboParser:
             system = System()
             run.system.append(system)
             positions = self.netcdf_parser.get('ATOM_POS', [])
-            max_n_atoms = self.netcdf_parser.get('MAX_ATOMS', 0)
+        #    max_n_atoms = self.netcdf_parser.get('MAX_ATOMS', 0)
             n_atoms = self.netcdf_parser.N_ATOMS
             atom_numbers = np.hstack(
                 [
@@ -818,37 +802,39 @@ class YamboParser:
             )
 
 
-            def process_and_select(positions, max_n_atoms, n_atoms): 
-                try:
-                    positions = np.array(positions)
-                    blocks = []
-                    selected = []
-                    positions = positions.reshape(-1, 3)
+         #   def process_and_select(positions, max_n_atoms, n_atoms): 
+          #      try:
+           #         positions = np.array(positions)
+            #        blocks = []
+             #       selected = []
+              #      positions = positions.reshape(-1, 3)
     
-                    n_points = positions.shape[0] 
-                    n_blocks = int( int(n_points) // int(max_n_atoms) )
+               #     n_points = positions.shape[0] 
+                #    n_blocks = int( int(n_points) // int(max_n_atoms) )
 
-                    for i in range(n_blocks):
-                        start_idx = int(i) * int(max_n_atoms)
-                        end_idx = (int(i) + 1) * int(max_n_atoms)
-                        block = positions[start_idx:end_idx]
-                        blocks.append(block)
-                    for i, block in enumerate(blocks):
-                        n_to_select = int(n_atoms[int(i)])
-                        selected_from_block = block[:n_to_select]
-                        for point in selected_from_block:
-                            selected.append(point)
+                 #   for i in range(n_blocks):
+                  #      start_idx = int(i) * int(max_n_atoms)
+                   #     end_idx = (int(i) + 1) * int(max_n_atoms)
+                    #    block = positions[start_idx:end_idx]
+                     #   blocks.append(block)
+                   # for i, block in enumerate(blocks):
+                    #    n_to_select = int(n_atoms[int(i)])
+                     #   selected_from_block = block[:n_to_select]
+                      #  for point in selected_from_block:
+                       #     selected.append(point)
     
-                    positions=np.array(selected)
-                    return positions        
+                #    positions=np.array(selected)
+                 #   return positions        
                     
-                except Exception as e:
-                    raise e
+             #   except Exception as e:
+                #    raise e
 
-            positions = process_and_select(positions, max_n_atoms, n_atoms)
+       #     positions = process_and_select(positions, max_n_atoms, n_atoms)
             
             system.atoms = Atoms(
-                positions = positions * ureg.bohr,
+                positions=np.reshape(positions, (np.size(positions) // 3, 3))
+                * ureg.bohr,
+               # positions = positions * ureg.bohr,
                 labels=[chemical_symbols[int(n)] for n in atom_numbers],
             )
 ##########################            
