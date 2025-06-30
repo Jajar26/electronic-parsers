@@ -767,7 +767,7 @@ class YamboParser:
                 output_spectra_values = to_values(spectra_file_content)
 
                 spectra.n_energies =  output_spectra_values.shape[0]
-                spectra.excitation_energies = output_spectra_values[:, 0] 
+                spectra.excitation_energies = output_spectra_values[:, 0] * ureg.eV
                 spectra.intensities = output_spectra_values[:, 1]
 
         self.mainfile_parser.mainfile = self.filepath
